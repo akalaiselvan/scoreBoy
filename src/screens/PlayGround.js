@@ -15,14 +15,68 @@ const PlayGround=({route})=>{
     const [noball,setNoball]=useState(false);
     const [bye,setBye]=useState(false);
     const [legbye,setLegbye]=useState(false);
+    
     const currentMatch=state.matches.find(m=>m.sNo===sNo)
     const tempSummary=currentMatch.summary
     const runs=tempSummary.map(o=>o.run)
     const total=tempSummary.map(o=>o.run!=='W'?o.run:0).reduce((p,n)=>p+n,0);
     const wicket=tempSummary.filter(f=>f.run==='W')
-    console.log(JSON.stringify(wicket))
+
+
+    const getLastBall=()=>{
+        if(tempSummary.length>0){
+            let ld=tempSummary[tempSummary.length-1].ball;
+            if((Math.round(ld%1*10)/10)===0.6){
+                ld=Math.round(ld)
+            }
+            return ld
+        }else{
+            return 0
+        }
+    }
+
+    const isExtra=()=>{
+        if(wide===true||noball===true){
+            return true
+        }else{
+            return false
+        }
+    }
+
     const addrun=(run)=>{
-        addRun(run,false,0,'Rohit','Perera','0.2',sNo)
+        let nextBall;
+        if(tempSummary.length>0){
+            const lastBall=tempSummary[tempSummary.length-1].ball
+            if(isExtra()){
+                nextBall=lastBall
+            }else{
+                nextBall=lastBall+0.1;
+                nextBall=Math.round(nextBall * 10) / 10
+                if((Math.round(lastBall%1*10)/10)===0.6){
+                    console.log('Over Completed')
+                    nextBall=Math.round(lastBall)
+                    nextBall=nextBall+0.1;
+                    nextBall=Math.round(nextBall * 10) / 10
+                }
+            }
+            
+        }else{
+            if(isExtra()){
+                nextBall=0.0   
+            }else{
+                nextBall=0.1
+            }
+        }
+        console.log(nextBall)
+        addRun(run,false,0,'Rohit','Perera',nextBall,sNo)
+        resetExtras()
+    }
+
+    const resetExtras=()=>{
+        setBye(false);
+        setLegbye(false);
+        setNoball(false);
+        setWide(false)
     }
 
     const setExtras=(extra)=>{
@@ -57,6 +111,7 @@ const PlayGround=({route})=>{
     return <> 
         <Card style={styles.mainScore}>
             <Text>Total : {total} - {wicket.length}</Text>
+            <Text>Overs : {getLastBall()}</Text>
         </Card>
         <Card style={styles.matchInfo}>
         <View style={{flexDirection:'row'}}>
